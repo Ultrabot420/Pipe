@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout repo
       uses: actions/checkout@v4
       with:
         submodules: recursive
@@ -31,21 +31,13 @@ jobs:
       run: |
         sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
+    # 🔴 CRITICAL PATCH FOR EXTRACTOR
+    - name: Force extractor to Java 8
+      run: |
+        sed -i '/compileOptions {/a\        sourceCompatibility JavaVersion.VERSION_1_8\n        targetCompatibility JavaVersion.VERSION_1_8' PipePipeExtractor/extractor/build.gradle
+
     - name: Fix Gradle version
       run: |
         cd PipePipeClient
         chmod +x gradlew
-        sed -i 's/gradle-7.5-all.zip/gradle-8.5-all.zip/' gradle/wrapper/gradle-wrapper.properties
-
-    - name: Build debug APK
-      run: |
-        cd PipePipeClient
-        ./gradlew clean assembleDebug \
-          --no-daemon \
-          -Dorg.gradle.configuration-cache=false
-
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: PipePipe-APK
-        path: PipePipeClient/app/build/outputs/apk/debug/*.apk
+        sed -i 's/gradle-7.5-all.zip/gradle-8.5-all.zip/' gradle/wrapper/
