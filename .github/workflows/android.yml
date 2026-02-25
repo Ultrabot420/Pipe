@@ -1,16 +1,16 @@
-name: Android Build
+name: Android CI
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout repo
       uses: actions/checkout@v4
       with:
         submodules: recursive
@@ -21,14 +21,18 @@ jobs:
         distribution: temurin
         java-version: '21'
 
-    - name: Grant gradlew permission
-      run: chmod +x PipePipeClient/gradlew
+    - name: Ensure correct Gradle version
+      run: |
+        cd PipePipeClient
+        chmod +x gradlew
+        sed -i 's/gradle-7.5-all.zip/gradle-8.5-all.zip/' gradle/wrapper/gradle-wrapper.properties
 
-    - name: Build APK
-      working-directory: PipePipeClient
-      run: ./gradlew assembleDebug
+    - name: Build debug APK
+      run: |
+        cd PipePipeClient
+        ./gradlew clean assembleDebug --no-daemon
 
-    - name: Upload APK
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
       with:
         name: PipePipe-APK
