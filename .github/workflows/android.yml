@@ -1,4 +1,4 @@
-name: Build PipePipe APK
+name: Build APK
 
 on:
   workflow_dispatch:
@@ -10,10 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
+    - name: Checkout with submodules
       uses: actions/checkout@v4
+      with:
+        submodules: recursive
 
-    - name: Setup Java 21
+    - name: Show repo structure
+      run: ls -R
+
+    - name: Setup Java
       uses: actions/setup-java@v4
       with:
         distribution: temurin
@@ -25,19 +30,17 @@ jobs:
     - name: Accept licenses
       run: yes | sdkmanager --licenses
 
-    - name: Install SDK packages
-      run: |
-        sdkmanager "platforms;android-33" "build-tools;33.0.2"
+    - name: Install SDK
+      run: sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
     - name: Build APK
-      working-directory: PipePipeClient
       run: |
-        ls
-        chmod +x ./gradlew
+        cd PipePipeClient
+        chmod +x gradlew
         ./gradlew assembleDebug --no-daemon -Dorg.gradle.configuration-cache=false
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: PipePipe-APK
+        name: apk
         path: PipePipeClient/app/build/outputs/apk/debug/*.apk
